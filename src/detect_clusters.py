@@ -3,17 +3,22 @@ import cv2
 
 def count(image):
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-    hue_channel = hsv[:,:,0]
-    #H channel is in range [0,175]
-    reth, hue_mask = cv2.threshold(hue_channel,0,175,cv2.THRESH_BINARY_INV+cv2.THRESH_OTSU)
-    #%%
+    val_channel = hsv[:,:,2]
+    retv, val_mask = cv2.threshold(val_channel,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
     #apply closing in order to remove 'holes' in our tiles
-    kernel = np.ones((7,7),np.uint8) #the kernel size has to adapted if we use smaller samples
-    closed_enough = cv2.morphologyEx(hue_mask, cv2.MORPH_CLOSE, kernel)
-    #%%
+    kernel = np.ones((7,7),np.uint8) #the kernel size has to be adapted if we use smaller samples
+    closed_enough = cv2.morphologyEx(val_mask, cv2.MORPH_CLOSE, kernel)
     """
-    find contours in every candidate region.
-    We user RETR_EXTERNAL because we're not interested in inner sub-regions
+    Find contours in each candidate region.
+    We use RETR_EXTERNAL because we're not interested in inner sub-regions
     """
     contours, hier = cv2.findContours(closed_enough,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
-    return len(contours)
+    """
+    Avoid counting contours that surely don't belong to a tile.
+    I noticed a value channel based approach is sensible to noise and creates many 0 length contours.
+    This explains the condition in the returned list:
+    at the resolution we're working at a tile contour should be certainly larger than 100 pixels.
+    A different approach would've been blurring the image before the Otsu's thresholding,
+    but I think this one is computationally cheaper.
+    """
+    return len([contour for contour in contours if cv2.arcLength(contour,True) > 100])
