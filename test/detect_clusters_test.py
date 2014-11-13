@@ -2,7 +2,6 @@ import sys
 sys.path.insert(0, 'src')
 import unittest
 import detect_clusters
-import detect_clusters_alt
 import cv2
 import matplotlib.pyplot as plt
 
@@ -21,9 +20,9 @@ class TestSequenceFunctions(unittest.TestCase):
         clusters_count = []
         for i in range(1,8):
             image = self.open_sample( "00{}".format(i) )
-            clusters_count.append( detect_clusters_alt.count(image) )
+            clusters_count.append( detect_clusters.count(image) )
         self.assertEqual(self.dataset_expected_clusters_count, clusters_count)
 
 
 if __name__ == '__main__':
-    unittest.main()
+    unittest.main(verbosity=2)
