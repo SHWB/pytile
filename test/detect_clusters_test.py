@@ -1,13 +1,13 @@
 import sys
 sys.path.insert(0, 'src')
 import unittest
-import detect_clusters
+from ddt import ddt, data
 import cv2
 import matplotlib.pyplot as plt
+import detect_clusters
 
+@ddt
 class TestSequenceFunctions(unittest.TestCase):
-    def setUp(self):
-        self.dataset_expected_clusters_count = [6,6,6,4,6,6,4]
 
     def open_sample(self, index):
         return cv2.imread("test/test_data/test_" + index + ".jpg")
@@ -16,12 +16,12 @@ class TestSequenceFunctions(unittest.TestCase):
         image = self.open_sample("001")
         self.assertNotEqual(image,None)
 
-    def test_count(self):
-        clusters_count = []
-        for i in range(1,8):
-            image = self.open_sample( "00{}".format(i) )
-            clusters_count.append( detect_clusters.count(image) )
-        self.assertEqual(self.dataset_expected_clusters_count, clusters_count)
+    @data((1,6),(2,6),(3,6),(4,4),(5,6),(6,6),(7,4))
+    def test_count(self, datapoint):
+        image_index, expected = datapoint
+        image = self.open_sample( "00{}".format(image_index) )
+        got = detect_clusters.count(image)
+        self.assertEqual(expected, got)
 
 
 if __name__ == '__main__':
