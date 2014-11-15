@@ -26,3 +26,4 @@ def fetch_contours(image, min_length):
     return np.array([contour for contour in contours if cv2.arcLength(contour,True) > min_length])
 
 
+
