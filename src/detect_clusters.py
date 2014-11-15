@@ -2,6 +2,10 @@ import numpy as np
 import cv2
 
 def count(image):
+    contours = fetch_contours(image,100)
+    return len(contours)
+
+def fetch_contours(image, min_length):
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
     val_channel = hsv[:,:,2]
     retv, val_mask = cv2.threshold(val_channel,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
@@ -18,7 +22,7 @@ def count(image):
     I noticed a value channel based approach is sensible to noise and creates many 0 length contours.
     This explains the condition in the returned list:
     at the resolution we're working at a tile contour should be certainly larger than 100 pixels.
-    A different approach would've been blurring the image before the Otsu's thresholding,
-    but I think this one is computationally cheaper.
     """
-    return len([contour for contour in contours if cv2.arcLength(contour,True) > 100])
+    return np.array([contour for contour in contours if cv2.arcLength(contour,True) > min_length])
+
+
