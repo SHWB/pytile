@@ -22,7 +22,7 @@ class TestDetection(unittest.TestCase):
          internal_points = np.array(location_dict.values()[0])
          image = cv2.imread("test/test_data/" + file_name)
          contours = detect_clusters.fetch_contours(image,100)
-         got = [] #got[i] is true if any point is internal_points is in contours[i]
+         got = [] #got[i] is true if any point in internal_points is in contours[i]
          for cnt in contours:
             is_in_contour = [] #element i is 1 (one) if cnt contains any point in internal_points
             for point in internal_points:

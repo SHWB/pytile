@@ -1,5 +1,6 @@
 import numpy as np
 import cv2
+import os
 
 def count(image):
     contours = fetch_contours(image,100)
@@ -25,5 +26,19 @@ def fetch_contours(image, min_length):
     """
     return np.array([contour for contour in contours if cv2.arcLength(contour,True) > min_length])
 
-
+if __name__ == '__main__':
+    for i in range(1,8):
+        image = cv2.imread('test/test_data/test_00{}.jpg'.format(i))
+        contours = fetch_contours(image,100) #min_length should be tuned on image size
+        if contours.size == 0:
+            break
+        j = 1
+        test_data_path = 'test/test_data/'
+        melds_dir = 'melds_00{}'.format(i)
+        if not os.path.exists(test_data_path + melds_dir):
+            os.makedirs(test_data_path + melds_dir)
+        for cnt in contours:
+            (x,y,w,h) = cv2.boundingRect(cnt)
+            cv2.imwrite(test_data_path + melds_dir + '/segment_{}.jpg'.format(j), image[y:y+h,x:x+w])
+            j += 1
 
