@@ -1,7 +1,6 @@
 import numpy as np
 import cv2
 import os
-import matplotlib.pyplot as plt
 from math import sin, pi
 
 def count(image):
@@ -27,6 +26,7 @@ def fetch_contours(image, min_length):
     at the resolution we're working at a tile contour should be certainly larger than 100 pixels.
     """
     candidate_contours = np.array([contour for contour in contours if cv2.arcLength(contour,True) > min_length])
+    #it may be a good idea to return an array of lengths to induce other contour properties later
     candidate_contours_lengths = np.array([cv2.arcLength(candidate, True) for candidate in candidate_contours])
     return candidate_contours, candidate_contours_lengths
 
@@ -35,7 +35,8 @@ def get_winning_tile(contours,lengths):
     return contours[winning_tile_index]
 
 def is_somewhat_straight(angle,tolerance):
-    # all quantities in degrees
+    #all quantities in degrees
+    #use sin(2x) because it's 0 every 90°
     return abs(sin(pi/90*angle)) <= sin(pi/90*tolerance)
 
 def straighten(image,angle,tolerance=4):
@@ -56,26 +57,36 @@ if __name__ == '__main__':
         image = cv2.imread('test/test_data/test_00{}.jpg'.format(sample_index))
         contours, lengths = fetch_contours(image,100) #min_length should be tuned on image size
         if contours.size == 0:
-            break
+            break #you know, this really shouldn't happen
         segment_index = 1
+        #we build the file name this way
         test_data_path = 'test/test_data/'
         melds_dir = 'melds_00{}'.format(sample_index)
+        #the winning tile *should* be the only one alone if the hand makes any sense
         winning_tile_index = np.argmin(lengths)
-        if not os.path.exists(test_data_path + melds_dir):
+        #for each sample create a folder with the melds (ROI) sub-images
+        if not os.path.exists(test_data_path + melds_dir): #let's be error proof, kinda
             os.makedirs(test_data_path + melds_dir)
+        #for each contour enclosing the ROI...
         for contour_index in range(len(contours)):
-            (x,y,w,h) = cv2.boundingRect(contours[contour_index])
-            # rotated_box = cv2.fitEllipse(contours[contour_index]) # <-- this doesn't work very well
+            (x,y,w,h) = cv2.boundingRect(contours[contour_index]) #bound it with a rectangle
+            #while searching for the minimum enclosing rectangle, which is not
+            #in general aligned with our margins
             rotated_box = cv2.minAreaRect(contours[contour_index])
             #rotated_box: Box2D structure - ( top-left corner(x,y), (width, height), clockwise angle of rotation )
-            bounded_meld = image[y:y+h,x:x+w]
+            bounded_meld = image[y:y+h,x:x+w] #this is the ROI in the boundingRect
+            """
+            the winning tile usually lays on its major side, that's why it has to be rotated
+            an extra 90° besides the straightening
+            """
             if contour_index != winning_tile_index:
-                segment_out = straighten(bounded_meld,rotated_box[2])
+                segment_out = straighten(bounded_meld,rotated_box[2]) #just check if not orthogonal
                 cv2.imwrite(test_data_path + melds_dir + '/segment_{}.jpg'.format(segment_index), segment_out)
             else:
                 rows,cols,channel = bounded_meld.shape
-                CCW_rotation = cv2.getRotationMatrix2D((cols/2,rows/2),-90,1)
+                CCW_rotation = cv2.getRotationMatrix2D((cols/2,rows/2),-90,1) #compute the 90°CCW rotation matrix
                 segment_out = straighten(bounded_meld,rotated_box[2])
+                #the extra rotation we were talking about
                 segment_out = cv2.warpAffine(segment_out,CCW_rotation,(cols,rows))
                 cv2.imwrite(test_data_path + melds_dir + '/single_segment_{}.jpg'.format(segment_index), segment_out)
             segment_index += 1
