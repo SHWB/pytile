@@ -48,7 +48,7 @@ def straighten(image,angle,tolerance=4):
         rows,cols,channel = image.shape
         #cv2.getRotationMatrix2D(center,angle,scale), the angle is CCW
         M = cv2.getRotationMatrix2D((cols/2,rows/2),angle,1)
-        rotated = cv2.warpAffine(image,M,(cols,rows)) 
+        rotated = cv2.warpAffine(image,M,(cols,rows))
         return rotated
 
 if __name__ == '__main__':
@@ -76,6 +76,6 @@ if __name__ == '__main__':
                 rows,cols,channel = bounded_meld.shape
                 CCW_rotation = cv2.getRotationMatrix2D((cols/2,rows/2),-90,1)
                 segment_out = straighten(bounded_meld,rotated_box[2])
-                segment_out = cv2.warpAffine(segment_out,CCW_rotation,(cols,rows))               
-                cv2.imwrite(test_data_path + melds_dir + '/single_segment_{}.jpg'.format(segment_index), segment_out)         
+                segment_out = cv2.warpAffine(segment_out,CCW_rotation,(cols,rows))
+                cv2.imwrite(test_data_path + melds_dir + '/single_segment_{}.jpg'.format(segment_index), segment_out)
             segment_index += 1
