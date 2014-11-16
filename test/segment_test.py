@@ -12,7 +12,7 @@ class TestSegmentation(unittest.TestCase):
     def test_segment(self):
     	image = None
     	tile_number = segment.tile_count(image)
-    	self.assertEqual(0,tile_number)
+    	self.assertEqual(1,tile_number)
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)

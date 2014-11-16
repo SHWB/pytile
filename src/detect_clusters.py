@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from math import sin, pi
 
 def count(image):
-    contours = fetch_contours(image,100)
+    contours,l = fetch_contours(image,100)
     return len(contours)
 
 def fetch_contours(image, min_length):
@@ -26,43 +26,56 @@ def fetch_contours(image, min_length):
     This explains the condition in the returned list:
     at the resolution we're working at a tile contour should be certainly larger than 100 pixels.
     """
-    return np.array([contour for contour in contours if cv2.arcLength(contour,True) > min_length])
+    candidate_contours = np.array([contour for contour in contours if cv2.arcLength(contour,True) > min_length])
+    candidate_contours_lengths = np.array([cv2.arcLength(candidate, True) for candidate in candidate_contours])
+    return candidate_contours, candidate_contours_lengths
 
-def rotate(image,angle,tolerance=5):
-    """
-    At the moment we obtain melds which are not orthogonal.
-    Need to rotate them if too crooked
-    """
-    if is_somewhat_straight(angle,tolerance):
-        return image
-    else:
-        rows,cols = image.shape
-        #cv2.getRotationMatrix2D(center,angle,scale)
-        M = cv2.getRotationMatrix2D((cols/2,rows/2),-angle,1)
-        dst = cv2.warpAffine(image,M,(cols,rows))
-        return dst
+def get_winning_tile(contours,lengths):
+    winning_tile_index = np.argmin(lengths)
+    return contours[winning_tile_index]
 
 def is_somewhat_straight(angle,tolerance):
     # all quantities in degrees
     return abs(sin(pi/90*angle)) <= sin(pi/90*tolerance)
 
+def straighten(image,angle,tolerance=4):
+    """
+    Rotate melds that are not orthogonal within the tolerance(degrees)
+    """
+    if is_somewhat_straight(angle,tolerance):
+        return image
+    else:
+        rows,cols,channel = image.shape
+        #cv2.getRotationMatrix2D(center,angle,scale), the angle is CCW
+        M = cv2.getRotationMatrix2D((cols/2,rows/2),angle,1)
+        rotated = cv2.warpAffine(image,M,(cols,rows)) 
+        return rotated
 
 if __name__ == '__main__':
-    for i in range(1,8):
-        image = cv2.imread('test/test_data/test_00{}.jpg'.format(i))
-        contours = fetch_contours(image,100) #min_length should be tuned on image size
+    for sample_index in range(1,8):
+        image = cv2.imread('test/test_data/test_00{}.jpg'.format(sample_index))
+        contours, lengths = fetch_contours(image,100) #min_length should be tuned on image size
         if contours.size == 0:
             break
-        j = 1
+        segment_index = 1
         test_data_path = 'test/test_data/'
-        melds_dir = 'melds_00{}'.format(i)
+        melds_dir = 'melds_00{}'.format(sample_index)
+        winning_tile_index = np.argmin(lengths)
         if not os.path.exists(test_data_path + melds_dir):
             os.makedirs(test_data_path + melds_dir)
-        for cnt in contours:
-            (x,y,w,h) = cv2.boundingRect(cnt)
-            rect = cv2.minAreaRect(cnt)
-            #rect: Box2D structure - ( top-left corner(x,y), (width, height), clockwise angle of rotation )
-            meld = image[y:y+h,x:x+w]
-            segment_out = rotate(meld,rect)
-            cv2.imwrite(test_data_path + melds_dir + '/segment_{}.jpg'.format(j), segment_out)
-            j += 1
+        for contour_index in range(len(contours)):
+            (x,y,w,h) = cv2.boundingRect(contours[contour_index])
+            # rotated_box = cv2.fitEllipse(contours[contour_index]) # <-- this doesn't work very well
+            rotated_box = cv2.minAreaRect(contours[contour_index])
+            #rotated_box: Box2D structure - ( top-left corner(x,y), (width, height), clockwise angle of rotation )
+            bounded_meld = image[y:y+h,x:x+w]
+            if contour_index != winning_tile_index:
+                segment_out = straighten(bounded_meld,rotated_box[2])
+                cv2.imwrite(test_data_path + melds_dir + '/segment_{}.jpg'.format(segment_index), segment_out)
+            else:
+                rows,cols,channel = bounded_meld.shape
+                CCW_rotation = cv2.getRotationMatrix2D((cols/2,rows/2),-90,1)
+                segment_out = straighten(bounded_meld,rotated_box[2])
+                segment_out = cv2.warpAffine(segment_out,CCW_rotation,(cols,rows))               
+                cv2.imwrite(test_data_path + melds_dir + '/single_segment_{}.jpg'.format(segment_index), segment_out)         
+            segment_index += 1
