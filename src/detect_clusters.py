@@ -1,6 +1,8 @@
 import numpy as np
 import cv2
 import os
+import matplotlib.pyplot as plt
+from math import sin, pi
 
 def count(image):
     contours = fetch_contours(image,100)
@@ -26,6 +28,25 @@ def fetch_contours(image, min_length):
     """
     return np.array([contour for contour in contours if cv2.arcLength(contour,True) > min_length])
 
+def rotate(image,angle,tolerance=5):
+    """
+    At the moment we obtain melds which are not orthogonal.
+    Need to rotate them if too crooked
+    """
+    if is_somewhat_straight(angle,tolerance):
+        return image
+    else:
+        rows,cols = image.shape
+        #cv2.getRotationMatrix2D(center,angle,scale)
+        M = cv2.getRotationMatrix2D((cols/2,rows/2),-angle,1)
+        dst = cv2.warpAffine(image,M,(cols,rows))
+        return dst
+
+def is_somewhat_straight(angle,tolerance):
+    # all quantities in degrees
+    return abs(sin(pi/90*angle)) <= sin(pi/90*tolerance)
+
+
 if __name__ == '__main__':
     for i in range(1,8):
         image = cv2.imread('test/test_data/test_00{}.jpg'.format(i))
@@ -39,6 +60,9 @@ if __name__ == '__main__':
             os.makedirs(test_data_path + melds_dir)
         for cnt in contours:
             (x,y,w,h) = cv2.boundingRect(cnt)
-            cv2.imwrite(test_data_path + melds_dir + '/segment_{}.jpg'.format(j), image[y:y+h,x:x+w])
+            rect = cv2.minAreaRect(cnt)
+            #rect: Box2D structure - ( top-left corner(x,y), (width, height), clockwise angle of rotation )
+            meld = image[y:y+h,x:x+w]
+            segment_out = rotate(meld,rect)
+            cv2.imwrite(test_data_path + melds_dir + '/segment_{}.jpg'.format(j), segment_out)
             j += 1
-

@@ -30,5 +30,11 @@ class TestDetection(unittest.TestCase):
             got.append(1 in is_in_contour)
          self.assertNotIn(False,got)
 
+    @data((3,True),(0,True),(-4,True),(140,False),(271,True),(-45,False))
+    def test_is_somewhat_straight(self,datapoint):
+        angle,expected = datapoint
+        got = detect_clusters.is_somewhat_straight(angle,5)
+        self.assertEqual(expected,got)
+
 if __name__ == '__main__':
     unittest.main(verbosity=2)
