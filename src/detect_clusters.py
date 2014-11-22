@@ -1,7 +1,7 @@
 import numpy as np
 import cv2
 import os
-from math import sin, pi
+from math import sin, pi, sqrt
 
 def count(image):
     contours,l = fetch_contours(image,100)
@@ -36,21 +36,50 @@ def get_winning_tile(contours,lengths):
 
 def is_somewhat_straight(angle,tolerance):
     #all quantities in degrees
-    #use sin(2x) because it's 0 every 90°
-    return abs(sin(pi/90*angle)) <= sin(pi/90*tolerance)
+    #use sin(2x) because it's 0 every 90 deg
+    return abs(sin(pi/90*angle)) < sin(pi/90*tolerance)
 
-def straighten(image,angle,tolerance=4):
+def straighten(image,angle,tolerance=4,crop=True):
     """
     Rotate melds that are not orthogonal within the tolerance(degrees)
+    The default behaviour doesn't resize the canvas accordingly to the angle of 
+    rotation. If the fourth argument is set to True, the canvas is enlarged to 
+    make the rotated image fit completely.
+    
+    This is done by taking the LARGEST canvas containing any rotation of the 
+    source image, i.e. a square with edge length equal to the source's diagonal.
+    This could be memory expensive for small angles but not a big deal with the
+    kind of images this procedure is supposed to work with (roughly 100px tall).
+    A more fine solution could be providing something like the following:
+        dst_height = src_width*cos(90-angle) + src_heigth*cos(angle)
+        dst_width = src_width*cos(angle) + src_heigth*cos(90-angle)
+    with proper attention to the angle range and source's image ratio, applying 
+    basic trigonometry.
+    Nonetheless the current conservative approach is ok, imo.
+        
     """
     if is_somewhat_straight(angle,tolerance):
         return image
     else:
-        rows,cols,channel = image.shape
-        #cv2.getRotationMatrix2D(center,angle,scale), the angle is CCW
-        M = cv2.getRotationMatrix2D((cols/2,rows/2),angle,1)
-        rotated = cv2.warpAffine(image,M,(cols,rows))
+        rows,cols,channels = image.shape
+        if crop:         
+            dst = image
+            dst_rows,dst_cols,dst_channels = dst.shape
+        else:
+            diagonal = int(sqrt(rows*rows + cols*cols))
+            offsetX = (diagonal - cols)/2
+            offsetY = (diagonal - rows)/2
+            dst = np.zeros((diagonal,diagonal,channels),dtype=np.uint8)
+            #compute the center of rotation for the newly created canvas
+            dst_rows,dst_cols,dst_channel = dst.shape             
+            #correctly positioning the old image in the new canvas
+            dst[offsetY:rows+offsetY,offsetX:cols+offsetX,:] = image
+            
+        rot_matrix = cv2.getRotationMatrix2D((dst_cols/2,dst_rows/2),angle,1.0)            
+        rotated = cv2.warpAffine(dst,rot_matrix,(dst_cols,dst_rows))
         return rotated
+
+
 
 if __name__ == '__main__':
     for sample_index in range(1,8):
@@ -77,16 +106,14 @@ if __name__ == '__main__':
             bounded_meld = image[y:y+h,x:x+w] #this is the ROI in the boundingRect
             """
             the winning tile usually lays on its major side, that's why it has to be rotated
-            an extra 90° besides the straightening
+            an extra 90 deg besides the straightening
             """
             if contour_index != winning_tile_index:
                 segment_out = straighten(bounded_meld,rotated_box[2]) #just check if not orthogonal
                 cv2.imwrite(test_data_path + melds_dir + '/segment_{}.jpg'.format(segment_index), segment_out)
             else:
-                rows,cols,channel = bounded_meld.shape
-                CCW_rotation = cv2.getRotationMatrix2D((cols/2,rows/2),-90,1) #compute the 90°CCW rotation matrix
                 segment_out = straighten(bounded_meld,rotated_box[2])
-                #the extra rotation we were talking about
-                segment_out = cv2.warpAffine(segment_out,CCW_rotation,(cols,rows))
+                #the winning tile is usually horizontal, must rotate it 90 degrees
+                segment_out = straighten(segment_out,-90,0,False)
                 cv2.imwrite(test_data_path + melds_dir + '/single_segment_{}.jpg'.format(segment_index), segment_out)
             segment_index += 1
