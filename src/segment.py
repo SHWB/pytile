@@ -14,7 +14,7 @@ def onedcluster(array,tol):
     clusters = [[]]
     j = 0
     for i in range(len(array)-1):
-        if abs(array[i+1] - array[i]) < tol:
+        if abs(array[i+1] - array[i]) <= tol:
             clusters[j].append(array[i])
         else:
             clusters.append([])
@@ -25,8 +25,14 @@ def produce_segments(image):
     test_hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
     test_value_img = test_hsv[:,:,2] #working on the value channel, as always   
     #we're doing the same exact thresholding and closure thingy we did in detection
-    ret, val_mask = cv2.threshold(test_value_img,0,255,cv2.THRESH_BINARY_INV+cv2.THRESH_OTSU)
-    kernel = np.ones((3,3),np.uint8) #the kernel size has to be adapted if we use smaller samples
+    rows,cols = test_value_img.shape
+    amount = int(.33*rows)
+    #the window must be odd
+    gaussian_window = amount if amount%2 != 0 else amount+1      
+    val_mask = cv2.adaptiveThreshold(test_value_img,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,\
+            cv2.THRESH_BINARY_INV,gaussian_window,0)
+    #we use an asymmetrical kernel which closes more in the vertical direction       
+    kernel = np.ones((1,3),np.uint8) #the kernel size has to be adapted if we use smaller samples
     closed_enough = cv2.morphologyEx(val_mask, cv2.MORPH_CLOSE, kernel)
     rows,cols = np.shape(closed_enough)
     #we count how many non-zero (aka black in the value space) pixels there are in each column
@@ -36,9 +42,12 @@ def produce_segments(image):
     choosing a discriminant value beneath of which lay all the intermediate zones
     of our tiles. This produces an array of indexes that are divided into clusters.
     """ 
-    discriminant = (np.mean(coldensity) + np.min(coldensity))/2.0
+    #note to self: the discriminant should be proportional to the variance along 
+    #coldensity (std squared)
+    std = np.std(coldensity)
+    discriminant = std*std/27 #black magic going on here
     indexes = np.where(coldensity < discriminant)[0]
-    clusters = onedcluster(indexes,int(.1*cols))
+    clusters = onedcluster(indexes,int(.15*cols))
     #for each non-empty cluster found the median element is our candidate tile separator
     divs = map(int,[np.median(group) for group in clusters if group != [] ])
     
@@ -67,7 +76,7 @@ def grow(array,tolerance):
 
 if __name__ == '__main__': #experiments I'm doing to come up with something
     test_data_path = 'test/test_data/'
-    test_image = cv2.imread(test_data_path+'melds_001/segment_5.jpg')
+    test_image = cv2.imread(test_data_path+'melds_001/segment_2.jpg')
     rows,cols,channels = test_image.shape
     divs = produce_segments(test_image)
     """
@@ -76,9 +85,9 @@ if __name__ == '__main__': #experiments I'm doing to come up with something
     this is done simply evaluating the difference between consecutive 
     segmentation coordinates.
     """
-    exp_tile_width = .33*rows
+    exp_tile_width = .4*rows
     divs = grow(divs,exp_tile_width)
-    """    
+    """   
     for x in divs:
         cv2.line(test_image,(x,0),(x,rows-1),(0,255,0),2)
     plt.imshow(test_image)
