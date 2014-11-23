@@ -56,7 +56,8 @@ def straighten(image,angle,tolerance=4,crop=True):
     with proper attention to the angle range and source's image ratio, applying 
     basic trigonometry.
     Nonetheless the current conservative approach is ok, imo.
-        
+    It's also possible to crop the image after N rotations using cv2.boundingRect
+    which makes things easier.        
     """
     if is_somewhat_straight(angle,tolerance):
         return image
