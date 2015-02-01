@@ -24,7 +24,10 @@ class Meld(object):
     # getters
     def getTileList(self):
         return self.tiles
-        
+    
+    def getMeldLength(self):
+        return len(self.tiles)
+    
     def addTile(self, aTile):
         self.tiles.append(aTile)
     
@@ -37,18 +40,24 @@ class Meld(object):
         self.tiles.sort(key = lambda x: x.leftborder, reverse = False)
      
     def mergeTileRight(self, index):
-        if index >= len(self.tiles):
-            pass
+        size = len(self.tiles)
+        if index >= size or index < -size:
+            raise IndexError("Index out of bounds")
+        elif index == size - 1 or index == -1:
+            raise IndexError("Cannot merge: nothing on the right")
         current_tile = self.tiles[index]
         next_tile = self.tiles[index+1]
         current_tile.setBoundaries(current_tile.leftborder,next_tile.rightborder)
         del(self.tiles[index+1])
         
     def mergeTileLeft(self,index):
-        if index == 0:
-            pass
+        size = len(self.tiles)
+        if index >= size or index < -size:
+            raise IndexError("Index out of bounds")
+        elif index == 0 or index == -size:
+            raise IndexError("Cannot merge: nothing on the left")
         current_tile = self.tiles[index]
-        prev_tile = self.tile[index-1]
+        prev_tile = self.tiles[index-1]
         current_tile.setBoundaries(prev_tile.leftborder,current_tile.rightborder)
         del(self.tiles[index-1])
         
