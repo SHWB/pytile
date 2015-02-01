@@ -18,13 +18,20 @@ class MeldTest(unittest.TestCase):
     def setUp(self):
         aspect_ratio = 0.75
         tile_height = 133.4
-        self.aMeld = Meld.Meld()
+        self.aMeld = Meld.Meld([], 0, 0)
         self.aMeld.addTile(Tile.Tile((0, 75), tile_height, aspect_ratio))
         self.aMeld.addTile(Tile.Tile((75, 85), tile_height, aspect_ratio))
         self.aMeld.addTile(Tile.Tile((85, 100), tile_height, aspect_ratio))
         self.aMeld.addTile(Tile.Tile((100, 210), tile_height, aspect_ratio))
         self.aMeld.addTile(Tile.Tile((210, 270), tile_height, aspect_ratio))
-        self.aMeld.addTile(Tile.Tile((270, 315), tile_height, aspect_ratio)) 
+        self.aMeld.addTile(Tile.Tile((270, 315), tile_height, aspect_ratio))
+        
+    def test_constructor(self):
+        aspect_ratio = 0.75
+        tile_height = 133.4
+        bounds = (0,75,85,100,210,270,315)
+        got = Meld.Meld(bounds, tile_height, aspect_ratio)
+        self.assertEqual(self.aMeld, got)
         
     def test_sortPositional(self):
         gotMeld = deepcopy(self.aMeld)

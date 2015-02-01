@@ -4,16 +4,22 @@ Created on Sun Feb  1 11:29:41 2015
 
 @author: shwb
 """
+from Tile import Tile
+
 
 class Meld(object):
-    def __init__(self):
+    def __init__(self, boundary_list, height, ratio):
         self.image = None
         self.tiles = []
-        
+        for i in range(len(boundary_list) - 1):
+            left = boundary_list[i]
+            right = boundary_list[i+1]
+            self.addTile(Tile((left, right), height, ratio))            
+    
     # override equality operator
     def __eq__(self, other):
         if isinstance(other, self.__class__):
-            return self.tiles == other.tiles
+            return self.tiles == other.tiles 
         else:
             return False
             
