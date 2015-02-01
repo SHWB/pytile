@@ -64,6 +64,18 @@ class MeldTest(unittest.TestCase):
     def test_nothing_mergeLeft(self):      
         self.assertRaises(IndexError, self.aMeld.mergeTileLeft, -self.aMeld.getMeldLength())
         self.assertRaises(IndexError, self.aMeld.mergeTileLeft, 0)
+        
+    def test_regularize(self):
+        aspect_ratio = 0.75
+        tile_height = 133.4
+        bounds = (0,75,85,100,210,270,315)
+        exp_bounds = (0,100,210,315)
+        expected = Meld.Meld(exp_bounds, tile_height, aspect_ratio)
+        got = Meld.Meld(bounds, tile_height, aspect_ratio)
+        got.regularize()
+        exp_list = [x.getBoundaries() for x in expected.tiles]
+        got_list = [x.getBoundaries() for x in got.tiles]
+        self.assertEqual(exp_list, got_list)
 
         
 if __name__ == "__main__":

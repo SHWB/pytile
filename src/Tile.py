@@ -45,6 +45,10 @@ class Tile(object):
         self.leftborder = left
         self.rightborder = right
         
+    def isTooThin(self):
+        # if it's thinner than threshold*100% the usual width it's too thin
+        threshold = 0.50
+        return self.getWidth() <= threshold * self.aspect_ratio * self.height
     
         
     

@@ -8,8 +8,8 @@ from Tile import Tile
 
 
 class Meld(object):
-    def __init__(self, boundary_list, height, ratio):
-        self.image = None
+    def __init__(self, boundary_list, height, ratio, image = None):
+        self.image = image
         self.tiles = []
         for i in range(len(boundary_list) - 1):
             left = boundary_list[i]
@@ -64,8 +64,19 @@ class Meld(object):
             raise IndexError("Cannot merge: nothing on the left")
         current_tile = self.tiles[index]
         prev_tile = self.tiles[index-1]
-        current_tile.setBoundaries(prev_tile.leftborder,current_tile.rightborder)
+        current_tile.setBoundaries(prev_tile.leftborder, current_tile.rightborder)
         del(self.tiles[index-1])
         
-        
+    def regularize(self):
+        i = 0
+        while i < len(self.tiles)-1:
+            try:
+                if self.tiles[i+1].isTooThin():
+                    self.mergeTileRight(i)
+                else:
+                    i += 1
+            except IndexError as e:
+                print(e.message)                
+                break;
+                        
         
