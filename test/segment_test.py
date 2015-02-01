@@ -4,7 +4,7 @@ import unittest
 from ddt import ddt, data, file_data
 import cv2
 import segment
-import numpy as np
+
 
 @ddt
 class TestSegmentation(unittest.TestCase):

@@ -4,7 +4,8 @@ all: test
 
 test:
 	python test/detect_clusters_test.py 
-	python test/segment_test.py
+	# python test/segment_test.py
+	python test/Meld_test.py
 
 docker/.built: docker/Dockerfile
 	docker build -t pytile-testenv docker/
