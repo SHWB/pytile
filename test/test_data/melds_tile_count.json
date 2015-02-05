@@ -1,0 +1,54 @@
+{
+	"melds_001": {
+		"segment_1.jpg":2,
+		"segment_2.jpg":3,
+		"segment_3.jpg":2,
+		"segment_4.jpg":3,
+		"segment_5.jpg":3,
+		"segment_6.jpg":1
+	},
+	"melds_002": {
+		"segment_1.jpg":2,
+		"segment_2.jpg":2,
+		"segment_3.jpg":3,
+		"segment_4.jpg":3,
+		"segment_5.jpg":3,
+		"segment_6.jpg":1
+	},
+	"melds_003": {
+		"segment_1.jpg":2,
+		"segment_2.jpg":2,
+		"segment_3.jpg":3,
+		"segment_4.jpg":3,
+		"segment_5.jpg":3,
+		"segment_6.jpg":1
+	},
+	"melds_004": {
+		"segment_1.jpg":7,
+		"segment_2.jpg":3,
+		"segment_3.jpg":3,
+		"segment_4.jpg":1
+	},
+	"melds_005": {
+		"segment_1.jpg":3,
+		"segment_2.jpg":2,
+		"segment_3.jpg":2,
+		"segment_4.jpg":3,
+		"segment_5.jpg":3,
+		"segment_6.jpg":1
+	},
+	"melds_006": {
+		"segment_1.jpg":3,
+		"segment_2.jpg":2,
+		"segment_3.jpg":2,
+		"segment_4.jpg":3,
+		"segment_5.jpg":1,
+		"segment_6.jpg":3
+	},
+	"melds_007": {
+		"segment_1.jpg":3,
+		"segment_2.jpg":7,
+		"segment_3.jpg":3,
+		"segment_4.jpg":1
+	}
+}

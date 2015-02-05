@@ -68,15 +68,23 @@ class Meld(object):
         del(self.tiles[index-1])
         
     def regularize(self):
+        tolerance = .9
         i = 0
-        while i < len(self.tiles)-1:
+        while i < len(self.tiles)-2:
             try:
-                if self.tiles[i+1].isTooThin():
+                if self.tiles[i].isTooThin(tolerance):
                     self.mergeTileRight(i)
                 else:
                     i += 1
             except IndexError as e:
                 print(e.message)                
-                break;
+                return
+
+        try:
+            if self.tiles[-1].isTooThin(tolerance):
+                    self.mergeTileLeft(-1)
+        except IndexError as e:
+                print(e.message)
+                return
                         
         

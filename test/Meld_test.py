@@ -26,7 +26,7 @@ class MeldTest(unittest.TestCase):
         self.aMeld.addTile(Tile.Tile((210, 270), tile_height, aspect_ratio))
         self.aMeld.addTile(Tile.Tile((270, 315), tile_height, aspect_ratio))
         
-    def test_constructor(self):
+    def test_construction_allows_list(self):
         aspect_ratio = 0.75
         tile_height = 133.4
         bounds = (0,75,85,100,210,270,315)
@@ -45,10 +45,10 @@ class MeldTest(unittest.TestCase):
         expected_bounds = (0, 85)
         self.assertEqual(expected_bounds, aCopy.tiles[0].getBoundaries())
         
-    def test_outofbounds_mergeRight(self):
+    def test_mergeRight_raises_exception_for_out_of_bounds(self):
         self.assertRaises(IndexError, self.aMeld.mergeTileRight, self.aMeld.getMeldLength())
         
-    def test_nothing_mergeRight(self):
+    def test_mergeRight_raises_exception_for_nothing_to_merge(self):
         self.assertRaises(IndexError, self.aMeld.mergeTileRight, self.aMeld.getMeldLength() - 1)
         self.assertRaises(IndexError, self.aMeld.mergeTileRight, -1)
 
@@ -58,10 +58,10 @@ class MeldTest(unittest.TestCase):
         expected_bounds = (210, 315)
         self.assertEqual(expected_bounds, aCopy.tiles[-1].getBoundaries())
         
-    def test_outofbounds_mergeLeft(self):
+    def test_mergeLeft_raises_exception_for_out_of_bounds(self):
         self.assertRaises(IndexError, self.aMeld.mergeTileLeft, self.aMeld.getMeldLength())
         
-    def test_nothing_mergeLeft(self):      
+    def test_mergeLeft_raises_exception_for_nothing_to_merge(self):      
         self.assertRaises(IndexError, self.aMeld.mergeTileLeft, -self.aMeld.getMeldLength())
         self.assertRaises(IndexError, self.aMeld.mergeTileLeft, 0)
         

@@ -13,7 +13,7 @@ class TestDetection(unittest.TestCase):
     def test_count(self, datapoint):
         image_index, expected = datapoint
         image = cv2.imread("test/test_data/test_00{}.jpg".format(image_index))
-        got = detect_clusters.count(image)
+        got = detect_clusters.contours_count(image)
         self.assertEqual(expected, got)
 
     @file_data('test_data/melds_locations.json')

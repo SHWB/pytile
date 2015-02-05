@@ -9,6 +9,7 @@ import segment
 @ddt
 class TestSegmentation(unittest.TestCase):
 
+	@file_data('test_data/melds_tile_count.json')
     def test_segment(self):
     	image = None
     	tile_number = segment.tile_count(image)

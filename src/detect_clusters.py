@@ -2,7 +2,7 @@ import numpy as np
 import cv2
 import os
 
-def count(image):
+def contours_count(image):
     contours = fetch_contours(image,100)
     return len(contours)
 
